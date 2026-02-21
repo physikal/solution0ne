@@ -11,23 +11,16 @@ interface StatCounterProps {
 
 export function StatCounter({ label, value, suffix }: StatCounterProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const animatingRef = useRef(false);
-  const isInView = useInView(ref, { margin: "-50px" });
+  const hasAnimated = useRef(false);
+  const isInView = useInView(ref, { once: true, margin: "-50px" });
   const [display, setDisplay] = useState(0);
 
   useEffect(() => {
-    if (!isInView) {
-      setDisplay(0);
-      animatingRef.current = false;
-      return;
-    }
-
-    if (animatingRef.current) return;
-    animatingRef.current = true;
+    if (!isInView || hasAnimated.current) return;
+    hasAnimated.current = true;
 
     const duration = 2000;
     const start = performance.now();
-    let frameId: number;
 
     function tick(now: number) {
       const elapsed = now - start;
@@ -36,18 +29,11 @@ export function StatCounter({ label, value, suffix }: StatCounterProps) {
       setDisplay(Math.round(eased * value));
 
       if (progress < 1) {
-        frameId = requestAnimationFrame(tick);
-      } else {
-        animatingRef.current = false;
+        requestAnimationFrame(tick);
       }
     }
 
-    frameId = requestAnimationFrame(tick);
-
-    return () => {
-      cancelAnimationFrame(frameId);
-      animatingRef.current = false;
-    };
+    requestAnimationFrame(tick);
   }, [isInView, value]);
 
   return (
