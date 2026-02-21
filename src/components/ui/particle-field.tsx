@@ -34,14 +34,33 @@ function createParticles(
   count: number,
 ): Particle[] {
   const particles: Particle[] = [];
-  const margin = 0.15;
+  const margin = 0.1;
+  const overshoot = 0.3;
 
   for (let i = 0; i < count; i++) {
-    const fromLeft = i < count / 2;
-    const originX = fromLeft
-      ? -Math.random() * width * 0.3
-      : width + Math.random() * width * 0.3;
-    const originY = Math.random() * height;
+    // Distribute evenly across 4 edges
+    const edge = i % 4;
+    let originX: number;
+    let originY: number;
+
+    switch (edge) {
+      case 0: // left
+        originX = -Math.random() * width * overshoot;
+        originY = Math.random() * height;
+        break;
+      case 1: // right
+        originX = width + Math.random() * width * overshoot;
+        originY = Math.random() * height;
+        break;
+      case 2: // top
+        originX = Math.random() * width;
+        originY = -Math.random() * height * overshoot;
+        break;
+      default: // bottom
+        originX = Math.random() * width;
+        originY = height + Math.random() * height * overshoot;
+        break;
+    }
 
     const targetX =
       width * (margin + Math.random() * (1 - 2 * margin));
@@ -80,20 +99,39 @@ export function ParticleField({ scrollYProgress }: ParticleFieldProps) {
       const { width, height } = canvas;
       ctx.clearRect(0, 0, width, height);
 
-      // Map scroll progress to convergence:
-      // 0.0–0.15: particles at edges (convergence = 0)
-      // 0.15–0.35: converging (0 → 1)
-      // 0.35–0.65: fully converged (1)
-      // 0.65–0.85: scattering (1 → 0)
-      // 0.85–1.0: particles at edges (convergence = 0)
+      // Convergence: how far particles have traveled from edge to target
+      // 0.0–0.10: at edges
+      // 0.10–0.30: flying inward
+      // 0.30–0.35: arriving at target, fading out
+      // 0.35–0.65: invisible (content reading zone)
+      // 0.65–0.70: reappearing at target, starting to scatter
+      // 0.70–0.90: flying outward
+      // 0.90–1.0: at edges
       let convergence: number;
-      if (progress < 0.35) {
-        convergence = smoothstep(0.15, 0.35, progress);
+      if (progress < 0.30) {
+        convergence = smoothstep(0.10, 0.30, progress);
       } else if (progress < 0.65) {
         convergence = 1;
       } else {
-        convergence = 1 - smoothstep(0.65, 0.85, progress);
+        convergence = 1 - smoothstep(0.65, 0.90, progress);
       }
+
+      // Fade: particles visible while moving, invisible once converged
+      // Peaks mid-transition, drops to 0 when content is solid
+      let fade: number;
+      if (progress < 0.20) {
+        fade = smoothstep(0.10, 0.20, progress);
+      } else if (progress < 0.35) {
+        fade = 1 - smoothstep(0.25, 0.35, progress);
+      } else if (progress < 0.65) {
+        fade = 0;
+      } else if (progress < 0.75) {
+        fade = smoothstep(0.65, 0.75, progress);
+      } else {
+        fade = 1 - smoothstep(0.85, 0.95, progress);
+      }
+
+      if (fade < 0.01) return;
 
       for (const p of particlesRef.current) {
         const x =
@@ -103,18 +141,18 @@ export function ParticleField({ scrollYProgress }: ParticleFieldProps) {
 
         const pulse =
           0.7 + 0.3 * Math.sin(p.phase + progress * Math.PI * 4);
-        const alpha = convergence * 0.6 + 0.15;
+        const alpha = fade * 0.8;
 
         // Outer glow
         ctx.beginPath();
         ctx.arc(x, y, p.glowSize * pulse, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${CYAN_R}, ${CYAN_G}, ${CYAN_B}, ${alpha * 0.15})`;
+        ctx.fillStyle = `rgba(${CYAN_R}, ${CYAN_G}, ${CYAN_B}, ${alpha * 0.2})`;
         ctx.fill();
 
         // Inner core
         ctx.beginPath();
         ctx.arc(x, y, p.size * pulse, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${CYAN_R}, ${CYAN_G}, ${CYAN_B}, ${alpha * 0.9})`;
+        ctx.fillStyle = `rgba(${CYAN_R}, ${CYAN_G}, ${CYAN_B}, ${alpha})`;
         ctx.fill();
       }
     },
