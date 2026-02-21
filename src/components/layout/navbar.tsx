@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { siteConfig } from "@/config/site";
+import { Logo } from "@/components/ui/logo";
 
 const NAV_LINKS = [
   { label: "Services", href: "#services" },
@@ -33,8 +33,9 @@ export function Navbar() {
       }
     >
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-        <a href="#" className="text-lg font-bold text-[var(--accent-cyan)]">
-          {siteConfig.name}
+        <a href="#" className="flex items-center">
+          <span className="hidden md:inline"><Logo size={28} showText /></span>
+          <span className="md:hidden"><Logo size={28} showText={false} /></span>
         </a>
 
         <ul className="hidden gap-8 md:flex">

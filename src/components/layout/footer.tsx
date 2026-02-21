@@ -1,12 +1,13 @@
 import { siteConfig } from "@/config/site";
+import { Logo } from "@/components/ui/logo";
 
 export function Footer() {
   return (
     <footer className="bg-[#06060a] py-12">
       <div className="mx-auto max-w-6xl px-6 text-center">
-        <p className="text-sm font-semibold text-[var(--accent-cyan)]">
-          {siteConfig.name}
-        </p>
+        <div className="flex justify-center">
+          <Logo size={28} showText />
+        </div>
         <p className="mt-2 text-xs text-[var(--foreground)]/50">
           {siteConfig.tagline}
         </p>
