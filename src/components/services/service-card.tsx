@@ -1,13 +1,18 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { motion } from "motion/react";
+import {
+  type MotionValue,
+  motion,
+  useTransform,
+} from "motion/react";
 
 interface ServiceCardProps {
   title: string;
   description: string;
   icon: string;
   index: number;
+  scrollYProgress: MotionValue<number>;
 }
 
 const icons: Record<string, ReactNode> = {
@@ -33,13 +38,34 @@ const icons: Record<string, ReactNode> = {
   ),
 };
 
-export function ServiceCard({ title, description, icon, index }: ServiceCardProps) {
+export function ServiceCard({
+  title,
+  description,
+  icon,
+  index,
+  scrollYProgress,
+}: ServiceCardProps) {
+  const stagger = index * 0.03;
+  const fadeIn = 0.15 + stagger;
+  const solidStart = 0.35 + stagger;
+  const solidEnd = 0.65 - stagger;
+  const fadeOut = 0.85 - stagger;
+
+  const opacity = useTransform(
+    scrollYProgress,
+    [fadeIn, solidStart, solidEnd, fadeOut],
+    [0, 1, 1, 0],
+  );
+
+  const y = useTransform(
+    scrollYProgress,
+    [fadeIn, solidStart, solidEnd, fadeOut],
+    [30, 0, 0, -30],
+  );
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-50px" }}
-      transition={{ duration: 0.5, delay: index * 0.15, ease: "easeOut" }}
+      style={{ opacity, y }}
       whileHover={{ scale: 1.02 }}
       className={
         "rounded-xl p-8 backdrop-blur-md " +
