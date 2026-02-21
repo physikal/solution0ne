@@ -66,17 +66,7 @@ export function Logo({ showText = true, size = 32 }: LogoProps) {
           style={{ fontFamily: "var(--font-geist-sans), sans-serif" }}
         >
           Solution
-          <span
-            className={
-              "inline-flex items-center justify-center " +
-              "mx-[0.5px] h-[1.1em] w-[0.72em] rounded-full " +
-              "border-[1.5px] border-[var(--accent-cyan)] " +
-              "text-center text-[0.85em] leading-none " +
-              "text-[var(--accent-cyan)]"
-            }
-          >
-            0
-          </span>
+          <span className="text-[var(--accent-cyan)]">0</span>
           ne
         </span>
       )}
